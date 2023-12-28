@@ -8,10 +8,12 @@ import * as yup from "yup";
 import { Controller, useFieldArray } from "react-hook-form";
 import CustomInputField from "../CustomInputField/CustomInputField";
 import { IoIosAdd } from "react-icons/io";
+import axios from "axios";
+import { MdDelete } from "react-icons/md";
 
 const schema = yup.object({
   segment_name: yup.string().required("Required"),
-  schemas: yup
+  schema: yup
     .array()
     .of(
       yup.object().shape({
@@ -31,22 +33,54 @@ const schema = yup.object({
 
 const MainPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [genderVal, setGenderVal] = useState("men");
+  const [genderVals, setGenderVals] = useState(["men"]);
+
   const {
-    register,
     handleSubmit,
     control,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      segment_name: "",
+      schema: [
+        {
+          first_name: "",
+          last_name: "",
+          gender: "male",
+          age: "",
+          account_name: "",
+          city: "",
+          state: "",
+        },
+      ],
+    },
   });
   const { fields, append, remove } = useFieldArray({
     control, // control props comes from useForm (optional: if you are using FormContext)
-    name: "schemas", // unique name for your Field Array
+    name: "schema", // unique name for your Field Array
   });
-  console.log("fields", errors);
   const onSubmit = (data) => {
+    delete data.gender;
+
     console.log("data", data);
+    const formData = { ...data, gender: genderVals };
+    console.log("data", formData, { withCredentials: true });
+
+    axios
+      .post(
+        "https://webhook.site/f3fd1acc-dd68-4f2f-8b34-d1e475189c12",
+        formData,
+        { withCredentials: true }
+      )
+      .then((response) => {
+        // Handle the successful response
+        console.log("Response:", response.data);
+      })
+      .catch((error) => {
+        // Handle errors
+        console.error("Error:", error);
+      });
   };
   return (
     <div>
@@ -66,6 +100,7 @@ const MainPage = () => {
         onClose={() => setModalOpen(false)}
         open={modalOpen}
         closeOnDimmerClick
+        closeOnEscape
         closeIcon
         size="tiny"
       >
@@ -93,23 +128,7 @@ const MainPage = () => {
               To save your segment,you need to add the schemas to build the
               query
             </p>
-            <p
-              className="add-schema-ptag"
-              onClick={(e) => {
-                append({
-                  first_name: "",
-                  last_name: "",
-                  gender: "",
-                  age: "",
-                  account_name: "",
-                  city: "",
-                  state: "",
-                });
-              }}
-            >
-              <IoIosAdd />
-              Add schema to segment
-            </p>
+
             {fields.map((field, index) => (
               <div
                 style={{
@@ -122,34 +141,37 @@ const MainPage = () => {
                   regular="true"
                   placeholder={"First name"}
                   control={control}
-                  name={`schemas[${index}].first_name`}
+                  name={`schema[${index}].first_name`}
                   error={
-                    errors?.["schemas"]?.[index]?.["first_name"]?.["message"]
+                    errors?.["schema"]?.[index]?.["first_name"]?.["message"]
                   }
                 />
                 <CustomInputField
                   regular="true"
                   placeholder={"Last name"}
                   control={control}
-                  name={`schemas[${index}].last_name`}
+                  name={`schema[${index}].last_name`}
                   error={
-                    errors?.["schemas"]?.[index]?.["last_name"]?.["message"]
+                    errors?.["schema"]?.[index]?.["last_name"]?.["message"]
                   }
                 />
                 <CustomInputField
                   regular="true"
                   placeholder={"Age"}
                   control={control}
-                  name={`schemas[${index}].age`}
+                  name={`schema[${index}].age`}
                   // error={errors["age"]?.message}
-                  error={errors?.["schemas"]?.[index]?.["age"]?.["message"]}
+                  error={errors?.["schema"]?.[index]?.["age"]?.["message"]}
                 />
+                {/* <label style={{ fontSize: "13px", marginTop: "5px" }}>
+                  Gender
+                </label>
                 <Controller
                   name="gender"
                   control={control}
-                  defaultValue=""
+                  defaultValue="male"
                   render={({ field }) => (
-                    <>
+                    <div style={{ display: "flex", gap: "4px" }}>
                       <Radio
                         label="Men"
                         value="men"
@@ -168,54 +190,90 @@ const MainPage = () => {
                         checked={genderVal === "other"}
                         onChange={() => setGenderVal("other")}
                       />
-                    </>
-                  )}
-                />
-                {/* <Controller
-                  name="selectedOption"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <Radio
-                      label="Option 2"
-                      value="option2"
-                      checked={field.value === "option2"}
-                      onChange={() => field.onChange("option2")}
-                    />
+                    </div>
                   )}
                 /> */}
+                <label style={{ fontSize: "13px", marginTop: "5px" }}>
+                  Gender
+                </label>
+                <Controller
+                  name={`gender[${index}]`}
+                  control={control}
+                  defaultValue="men"
+                  render={({ field }) => (
+                    <div style={{ display: "flex", gap: "4px" }}>
+                      <Radio
+                        label="Men"
+                        value="men"
+                        checked={field.value === "men"}
+                        onChange={() => {
+                          // Update the gender value for the current schema
+                          const updatedGenderVals = [...genderVals];
+                          updatedGenderVals[index] = "men";
+                          setGenderVals(updatedGenderVals);
+                          field.onChange("men");
+                        }}
+                      />
+                      <Radio
+                        label="Women"
+                        value="women"
+                        checked={field.value === "women"}
+                        onChange={() => {
+                          const updatedGenderVals = [...genderVals];
+                          updatedGenderVals[index] = "women";
+                          setGenderVals(updatedGenderVals);
+                          field.onChange("women");
+                        }}
+                      />
+                      <Radio
+                        label="Other"
+                        value="other"
+                        checked={field.value === "other"}
+                        onChange={() => {
+                          const updatedGenderVals = [...genderVals];
+                          updatedGenderVals[index] = "other";
+                          setGenderVals(updatedGenderVals);
+                          field.onChange("other");
+                        }}
+                      />
+                    </div>
+                  )}
+                />
+                {/* ... (Your delete button) */}
                 <CustomInputField
                   regular="true"
                   placeholder={"City"}
                   control={control}
-                  name={`schemas[${index}].city`}
-                  error={errors?.["schemas"]?.[index]?.["city"]?.["message"]}
+                  name={`schema[${index}].city`}
+                  error={errors?.["schema"]?.[index]?.["city"]?.["message"]}
                 />
                 <CustomInputField
                   regular="true"
                   placeholder={"State"}
                   control={control}
-                  name={`schemas[${index}].state`}
-                  error={errors?.["schemas"]?.[index]?.["state"]?.["message"]}
+                  name={`schema[${index}].state`}
+                  error={errors?.["schema"]?.[index]?.["state"]?.["message"]}
                 />{" "}
                 <CustomInputField
                   regular="true"
                   placeholder={"Account name"}
                   control={control}
-                  name={`schemas[${index}].account_name`}
+                  name={`schema[${index}].account_name`}
                   error={
-                    errors?.["schemas"]?.[index]?.["account_name"]?.["message"]
+                    errors?.["schema"]?.[index]?.["account_name"]?.["message"]
                   }
                 />
                 {fields.length > 1 && (
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      remove(index);
-                    }}
-                  >
-                    delete
-                  </Button>
+                  <div style={{ marginBottom: "10px" }}>
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        remove(index);
+                      }}
+                    >
+                      <MdDelete style={{ fontSize: "24px", color: "red" }} />
+                    </Button>
+                  </div>
                 )}
                 {/* {fields.length > 1 && (
                   <Button
