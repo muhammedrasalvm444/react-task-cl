@@ -1,163 +1,271 @@
-import React from 'react'
-import { Button, Input, Label, Modal } from 'semantic-ui-react'
-import { useState } from 'react';
-import "./style.css"
-import { useForm } from "react-hook-form"
-import { yupResolver } from "@hookform/resolvers/yup"
-import * as yup from "yup"
-import { Controller ,useFieldArray} from "react-hook-form";
-import CustomInputField from '../CustomInputField/CustomInputField';
+import React from "react";
+import { Button, Input, Label, Modal, Radio } from "semantic-ui-react";
+import { useState } from "react";
+import "./style.css";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { Controller, useFieldArray } from "react-hook-form";
+import CustomInputField from "../CustomInputField/CustomInputField";
+import { IoIosAdd } from "react-icons/io";
 
-
-const schema = yup
-  .object({
-    firstName: yup.string().required(),
-    age: yup.number().positive().integer().required(),
-  })
-  .required()
-
+const schema = yup.object({
+  segment_name: yup.string().required("Required"),
+  schemas: yup
+    .array()
+    .of(
+      yup.object().shape({
+        first_name: yup.string().required("Required"),
+        last_name: yup.string().required("Required"),
+        account_name: yup.string().required("Required"),
+        age: yup
+          .number()
+          .required("Required")
+          .typeError("Please enter a number"),
+        city: yup.string().required("Required"),
+        state: yup.string().required("Required"),
+      })
+    )
+    .required(),
+});
 
 const MainPage = () => {
-    const [modalOpen, setModalOpen] = useState(false);
-    const {
-        register,
-        handleSubmit,
-        control,
-        formState: { errors },
-      } = useForm({
-        resolver: yupResolver(schema),
-      })
-      const { fields, append, remove,  } = useFieldArray({
-        control, // control props comes from useForm (optional: if you are using FormContext)
-        name: "schemas", // unique name for your Field Array
-      });
-      console.log("fields",fields);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [genderVal, setGenderVal] = useState("men");
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+  const { fields, append, remove } = useFieldArray({
+    control, // control props comes from useForm (optional: if you are using FormContext)
+    name: "schemas", // unique name for your Field Array
+  });
+  console.log("fields", errors);
+  const onSubmit = (data) => {
+    console.log("data", data);
+  };
   return (
-    <div>    <Button  basic color='green' onClick={()=>setModalOpen(true)}>Save Segment</Button>
-      <Modal
-      onClose={() => setModalOpen(false)}
-      open={modalOpen}
-    >
-      <Modal.Header>Saving Segment</Modal.Header>
-      <Modal.Content >
-        
-      </Modal.Content>
-      <form onSubmit={handleSubmit()}>
-      <label>Enter the name of segment</label>
-     
-      <CustomInputField
-            placeholder={"enter_full_name"}
-            label={"full_name_"}
-            control={control}
-            name="full_name"
-            error={errors["full_name"]?.message}
-          ></CustomInputField>
-      <p>{errors.firstName?.message}</p>
-      <p>To save your segment,you need to add the schemas to build the query</p>
-      {fields.map((field, index) => (
-        <>
-        <CustomInputField
-             
-                regular="true"
-                placeholder={"first_name"}
-                control={control}
-                name={`items[${index}].first_name`}
-                error={errors?.["items"]?.[index]?.["first_name"]?.["message"]}
-              />
-               <CustomInputField
-             
-                regular="true"
-                placeholder={"last_name"}
-                control={control}
-                name={`items[${index}].last_name`}
-                error={errors?.["items"]?.[index]?.["last_name"]?.["message"]}
-               
-              />
-               <CustomInputField
-             
-                regular="true"
-                placeholder={"age"}
-                control={control}
-                name={`items[${index}].age`}
-                // error={errors["age"]?.message}
-                error={errors?.["items"]?.[index]?.["age"]?.["message"]}
-              />
-               <CustomInputField
-                regular="true"
-                placeholder={"gender"}
-                control={control}
-                name={`items[${index}].gender`}
-                // error={errors["gender"]?.message}
-                error={errors?.["items"]?.[index]?.["gender"]?.["message"]}
-              />
-                             <CustomInputField
-             
-             regular="true"
-             placeholder={"city"}
-             control={control}
-             name={`items[${index}].city`}
-             // error={errors["city"]?.message}
-
-             error={errors?.["items"]?.[index]?.["city"]?.["message"]}
-             // label="Quantity"
-             // helperText={"Name needs to be 'a'"}
-           />              
-            <CustomInputField
-             regular="true"
-             placeholder={"state"}
-             control={control}
-             name={`items[${index}].state`}
-
-             error={errors?.["items"]?.[index]?.["state"]?.["message"]}
-    
-           />  <CustomInputField
-             
-             regular="true"
-             placeholder={"Account name"}
-             control={control}
-             name={`items[${index}].account_name`}
-   error={errors?.["items"]?.[index]?.["account_name"]?.["message"]}
-
-           />
-           {fields.length > 1 && (
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    remove(index);
-                  }}
-                >
-            delete
-                </Button>)}
-              
-              </>
-              
-    ))}
-    
-    <Button
-            onClick={(e) => {
-              // e.preventDefault();
-              append({ first_name: "",last_name:"",gender:"",age:"",account_name:"",city:"",state:"" });
-            }}
-          >
-Add schema to segment</Button>
-      </form>
-
-      
-      {/* <Modal.Actions>
-        <Button color='black' onClick={() => setOpen(false)}>
-          Nope
+    <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Button basic color="green" onClick={() => setModalOpen(true)}>
+          Save Segment
         </Button>
-        <Button
-          content="Yep, that's me"
-          labelPosition='right'
-          icon='checkmark'
-          onClick={() => setOpen(false)}
-          positive
-        />
-      </Modal.Actions> */}
-    </Modal>
-    </div>
-  )
-}
+      </div>
+      <Modal
+        onClose={() => setModalOpen(false)}
+        open={modalOpen}
+        closeOnDimmerClick
+        closeIcon
+        size="tiny"
+      >
+        <Modal.Header>Saving Segment</Modal.Header>
 
-export default MainPage
+        <Modal.Content>
+          <form className="form-container" onSubmit={handleSubmit(onSubmit)}>
+            <div
+              style={{ gap: "10px", display: "flex", flexDirection: "column" }}
+            >
+              <label
+                style={{ fontSize: "20px", Bottom: "10px", marginTop: "3px" }}
+              >
+                Enter the name of segment
+              </label>
+              <CustomInputField
+                placeholder={"Name of the segment"}
+                control={control}
+                name="segment_name"
+                error={errors["segment_name"]?.message}
+              ></CustomInputField>
+              <p style={{ color: "red" }}>{errors.name_of_segment?.message}</p>
+            </div>
+            <p>
+              To save your segment,you need to add the schemas to build the
+              query
+            </p>
+            <p
+              className="add-schema-ptag"
+              onClick={(e) => {
+                append({
+                  first_name: "",
+                  last_name: "",
+                  gender: "",
+                  age: "",
+                  account_name: "",
+                  city: "",
+                  state: "",
+                });
+              }}
+            >
+              <IoIosAdd />
+              Add schema to segment
+            </p>
+            {fields.map((field, index) => (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column ",
+                  gap: "10px",
+                }}
+              >
+                <CustomInputField
+                  regular="true"
+                  placeholder={"First name"}
+                  control={control}
+                  name={`schemas[${index}].first_name`}
+                  error={
+                    errors?.["schemas"]?.[index]?.["first_name"]?.["message"]
+                  }
+                />
+                <CustomInputField
+                  regular="true"
+                  placeholder={"Last name"}
+                  control={control}
+                  name={`schemas[${index}].last_name`}
+                  error={
+                    errors?.["schemas"]?.[index]?.["last_name"]?.["message"]
+                  }
+                />
+                <CustomInputField
+                  regular="true"
+                  placeholder={"Age"}
+                  control={control}
+                  name={`schemas[${index}].age`}
+                  // error={errors["age"]?.message}
+                  error={errors?.["schemas"]?.[index]?.["age"]?.["message"]}
+                />
+                <Controller
+                  name="gender"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <>
+                      <Radio
+                        label="Men"
+                        value="men"
+                        checked={genderVal === "men"}
+                        onChange={() => setGenderVal("men")}
+                      />
+                      <Radio
+                        label="Women"
+                        value="women"
+                        checked={genderVal === "women"}
+                        onChange={() => setGenderVal("women")}
+                      />
+                      <Radio
+                        label="Other"
+                        value="other"
+                        checked={genderVal === "other"}
+                        onChange={() => setGenderVal("other")}
+                      />
+                    </>
+                  )}
+                />
+                {/* <Controller
+                  name="selectedOption"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <Radio
+                      label="Option 2"
+                      value="option2"
+                      checked={field.value === "option2"}
+                      onChange={() => field.onChange("option2")}
+                    />
+                  )}
+                /> */}
+                <CustomInputField
+                  regular="true"
+                  placeholder={"City"}
+                  control={control}
+                  name={`schemas[${index}].city`}
+                  error={errors?.["schemas"]?.[index]?.["city"]?.["message"]}
+                />
+                <CustomInputField
+                  regular="true"
+                  placeholder={"State"}
+                  control={control}
+                  name={`schemas[${index}].state`}
+                  error={errors?.["schemas"]?.[index]?.["state"]?.["message"]}
+                />{" "}
+                <CustomInputField
+                  regular="true"
+                  placeholder={"Account name"}
+                  control={control}
+                  name={`schemas[${index}].account_name`}
+                  error={
+                    errors?.["schemas"]?.[index]?.["account_name"]?.["message"]
+                  }
+                />
+                {fields.length > 1 && (
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      remove(index);
+                    }}
+                  >
+                    delete
+                  </Button>
+                )}
+                {/* {fields.length > 1 && (
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      remove(index);
+                    }}
+                  >
+                    delete
+                  </Button>
+                )} */}
+              </div>
+            ))}
+            <p
+              className="add-schema-ptag"
+              onClick={(e) => {
+                append({
+                  first_name: "",
+                  last_name: "",
+                  gender: "",
+                  age: "",
+                  account_name: "",
+                  city: "",
+                  state: "",
+                });
+              }}
+            >
+              <IoIosAdd />
+              Add schema to segment
+            </p>
+            <div className="button_div">
+              <Button color="green" loading={false}>
+                Save the segment
+              </Button>
+              <Button
+                inverted
+                color="red"
+                loading={false}
+                onClick={() => {
+                  setModalOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal.Content>
+      </Modal>
+    </div>
+  );
+};
+
+export default MainPage;

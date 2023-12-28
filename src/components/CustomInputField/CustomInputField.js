@@ -1,22 +1,28 @@
-import React, { useState } from "react";
+import React from "react";
 import { Form } from "semantic-ui-react";
 import { Controller } from "react-hook-form";
+import "./style.css";
 
-function CustomInputField({ name, control, redStar, ...others }) {
-  // // };
-
+function CustomInputField({ name, control, redStar, error, ...others }) {
   return (
-    <div {...others} redStar={redStar}>
+    <div className={`input_class ${error ? "error" : ""}`}>
       <Controller
         name={name}
         control={control}
         render={({ field: { value, onChange } }) => (
-          <Form.Input
-            value={value}
-            onChange={onChange}
-            size="large"
-            {...others}
-          />
+          <React.Fragment>
+            <Form.Input
+              value={value}
+              onChange={onChange}
+              size="large"
+              width="100%" // Set the width to 100%
+
+              {...others}
+            />
+            {error && (
+              <p className="error-message">{error}</p>
+            )}
+          </React.Fragment>
         )}
       />
     </div>
@@ -24,3 +30,4 @@ function CustomInputField({ name, control, redStar, ...others }) {
 }
 
 export default CustomInputField;
+
