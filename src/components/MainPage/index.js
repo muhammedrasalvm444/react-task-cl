@@ -49,7 +49,7 @@ const MainPage = () => {
         {
           first_name: "",
           last_name: "",
-          gender: "male",
+          gender: "men",
           age: "",
           account_name: "",
           city: "",
@@ -69,9 +69,9 @@ const MainPage = () => {
 
     axios
       .post(
-        "https://webhook.site/f3fd1acc-dd68-4f2f-8b34-d1e475189c12",
-        formData,
-        { withCredentials: true }
+        "http://localhost:8080/https://webhook.site/f3fd1acc-dd68-4f2f-8b34-d1e475189c12",
+
+        formData
       )
       .then((response) => {
         // Handle the successful response
