@@ -10,6 +10,7 @@ import CustomInputField from "../CustomInputField/CustomInputField";
 import { IoIosAdd } from "react-icons/io";
 import axios from "axios";
 import { MdDelete } from "react-icons/md";
+import { toast } from "react-toastify";
 
 const schema = yup.object({
   segment_name: yup.string().required("Required"),
@@ -33,6 +34,7 @@ const schema = yup.object({
 
 const MainPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [genderVals, setGenderVals] = useState(["men"]);
 
   const {
@@ -61,11 +63,9 @@ const MainPage = () => {
     name: "schema", // unique name for your Field Array
   });
   const onSubmit = (data) => {
-    delete data.gender;
-
+    setLoading(true);
     console.log("data", data);
     const formData = { ...data, gender: genderVals };
-    console.log("data", formData, { withCredentials: true });
 
     axios
       .post(
@@ -75,11 +75,15 @@ const MainPage = () => {
       )
       .then((response) => {
         // Handle the successful response
-        console.log("Response:", response.data);
+        setModalOpen(false);
+        toast?.success("Form Submitted succussfully..");
+        setLoading(false);
       })
       .catch((error) => {
         // Handle errors
-        console.error("Error:", error);
+        toast?.error("Failed..");
+
+        setLoading(false);
       });
   };
   return (
@@ -131,6 +135,7 @@ const MainPage = () => {
 
             {fields.map((field, index) => (
               <div
+                key={"fileds" + index}
                 style={{
                   display: "flex",
                   flexDirection: "column ",
@@ -305,7 +310,7 @@ const MainPage = () => {
               Add schema to segment
             </p>
             <div className="button_div">
-              <Button color="green" loading={false}>
+              <Button color="green" loading={loading}>
                 Save the segment
               </Button>
               <Button
